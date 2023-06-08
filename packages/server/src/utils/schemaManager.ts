@@ -48,8 +48,8 @@ export class SchemaManager {
       }
     | {
         readonly mode: 'schema';
-        readonly apiSchema: GraphQLSchema;
-        readonly schemaDerivedData: SchemaDerivedData;
+        apiSchema: GraphQLSchema;
+        schemaDerivedData: SchemaDerivedData;
       };
 
   constructor(
@@ -209,4 +209,20 @@ export class SchemaManager {
       });
     }
   }
+
+  public updateSchemaManager(
+    apiSchema: GraphQLSchema
+  ): void {
+    if (this.modeSpecificState.mode === 'schema') {
+      this.modeSpecificState.apiSchema = apiSchema
+      this.modeSpecificState.schemaDerivedData = this.schemaDerivedDataProvider(apiSchema)
+      this.processSchemaLoadOrUpdateEvent(
+        {
+          apiSchema: this.modeSpecificState.apiSchema,
+        },
+        this.modeSpecificState.schemaDerivedData,
+      );
+    }
+  }
+}
 }

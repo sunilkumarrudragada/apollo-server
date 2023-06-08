@@ -1091,6 +1091,15 @@ export class ApolloServer<in out TContext extends BaseContext = BaseContext> {
     }
   }
 
+  public updateSchema<TContext extends BaseContext>(
+    config: ApolloServerOptionsWithStaticSchema<TContext>,
+  ) {
+    if (this.internals.state.phase === 'started') {
+      const  apiSchema: GraphQLSchema = ApolloServer.constructSchema(config)
+      this.internals.state.schemaManager.updateSchema(apiSchema)
+    }
+  }
+
   private errorResponse(
     error: unknown,
     requestHead: HTTPGraphQLHead,
