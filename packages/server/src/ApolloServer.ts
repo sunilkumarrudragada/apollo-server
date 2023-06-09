@@ -1093,7 +1093,7 @@ export class ApolloServer<in out TContext extends BaseContext = BaseContext> {
 
   public updateSchema<TContext extends BaseContext>(
     config: ApolloServerOptionsWithStaticSchema<TContext>,
-  ) {
+  ): void {
     if (this.internals.state.phase === 'started') {
       const  apiSchema: GraphQLSchema = ApolloServer.constructSchema(config)
       this.internals.state.schemaManager.updateSchemaManager(apiSchema)
