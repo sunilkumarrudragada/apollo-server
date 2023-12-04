@@ -1,5 +1,139 @@
 # @apollo/server
 
+## 4.9.5
+
+### Patch Changes
+
+- [#7741](https://github.com/apollographql/apollo-server/pull/7741) [`07585fe39`](https://github.com/apollographql/apollo-server/commit/07585fe39751a5d4009664293b6e413078a9b827) Thanks [@mayakoneval](https://github.com/mayakoneval)! - Pin major releases of embeddable Explorer & Sandbox code.
+
+- [#7769](https://github.com/apollographql/apollo-server/pull/7769) [`4fac1628c`](https://github.com/apollographql/apollo-server/commit/4fac1628c5d92bb393ef757f65908129459ab045) Thanks [@cwikla](https://github.com/cwikla)! - Change SchemaReporter.pollTimer from being a NodeJS.Timer to a NodeJS.Timeout
+
+## 4.9.4
+
+### Patch Changes
+
+- [#7747](https://github.com/apollographql/apollo-server/pull/7747) [`ddce036e1`](https://github.com/apollographql/apollo-server/commit/ddce036e1b683adc636a7132e0c249690bf05ce0) Thanks [@trevor-scheer](https://github.com/trevor-scheer)! - The minimum version of `graphql` officially supported by Apollo Server 4 as a peer dependency, v16.6.0, contains a [serious bug that can crash your Node server](https://github.com/graphql/graphql-js/issues/3528). This bug is fixed in the immediate next version, `graphql@16.7.0`, and we **strongly encourage you to upgrade your installation of `graphql` to at least v16.7.0** to avoid this bug. (For backwards compatibility reasons, we cannot change Apollo Server 4's minimum peer dependency, but will change it when we release Apollo Server 5.)
+
+  Apollo Server 4 contained a particular line of code that makes triggering this crashing bug much more likely. This line was already removed in Apollo Server v3.8.2 (see #6398) but the fix was accidentally not included in Apollo Server 4. We are now including this change in Apollo Server 4, which will **reduce** the likelihood of hitting this crashing bug for users of `graphql` v16.6.0. That said, taking this `@apollo/server` upgrade **does not prevent** this bug from being triggered in other ways, and the real fix to this crashing bug is to upgrade `graphql`.
+
+## 4.9.3
+
+### Patch Changes
+
+- [`a1c725eaf`](https://github.com/apollographql/apollo-server/commit/a1c725eaf53c901e32a15057211bcb3eb6a6109b) Thanks [@trevor-scheer](https://github.com/trevor-scheer)! - Ensure API keys are valid header values on startup
+
+  Apollo Server previously performed no sanitization or validation of API keys on startup. In the case that an API key was provided which contained characters that are invalid as header values, Apollo Server could inadvertently log the API key in cleartext.
+
+  This only affected users who:
+
+  - Provide an API key with characters that are invalid as header values
+  - Use either schema or usage reporting
+  - Use the default fetcher provided by Apollo Server or configure their own `node-fetch` fetcher
+
+  Apollo Server now trims whitespace from API keys and validates that they are valid header values. If an invalid API key is provided, Apollo Server will throw an error on startup.
+
+  For more details, see the security advisory:
+  https://github.com/apollographql/apollo-server/security/advisories/GHSA-j5g3-5c8r-7qfx
+
+## 4.9.2
+
+### Patch Changes
+
+- [#7699](https://github.com/apollographql/apollo-server/pull/7699) [`62e7d940d`](https://github.com/apollographql/apollo-server/commit/62e7d940de025f21e89c60404bce0dddac84ed6c) Thanks [@trevor-scheer](https://github.com/trevor-scheer)! - Fix error path attachment for list items
+
+  Previously, when errors occurred while resolving a list item, the trace builder would fail to place the error at the correct path and just default to the root node with a warning message:
+
+  > `Could not find node with path x.y.1, defaulting to put errors on root node.`
+
+  This change places these errors at their correct paths and removes the log.
+
+## 4.9.1
+
+### Patch Changes
+
+- [#7672](https://github.com/apollographql/apollo-server/pull/7672) [`ebfde0007`](https://github.com/apollographql/apollo-server/commit/ebfde0007c647d9fb73e3aa24b968def3e307084) Thanks [@trevor-scheer](https://github.com/trevor-scheer)! - Add missing `nonce` on `script` tag for non-embedded landing page
+
+## 4.9.0
+
+### Minor Changes
+
+- [#7617](https://github.com/apollographql/apollo-server/pull/7617) [`4ff81ca50`](https://github.com/apollographql/apollo-server/commit/4ff81ca508d46eaafa4aa7c265cf2ba2c4421524) Thanks [@trevor-scheer](https://github.com/trevor-scheer)! - Introduce new `ApolloServerPluginSubscriptionCallback` plugin. This plugin implements the [subscription callback protocol](https://github.com/apollographql/router/blob/dev/dev-docs/callback_protocol.md) which is used by Apollo Router. This feature implements subscriptions over HTTP via a callback URL which Apollo Router registers with Apollo Server. This feature is currently in preview and is subject to change.
+
+  You can enable callback subscriptions like so:
+
+  ```ts
+  import { ApolloServerPluginSubscriptionCallback } from '@apollo/server/plugin/subscriptionCallback';
+  import { ApolloServer } from '@apollo/server';
+
+  const server = new ApolloServer({
+    // ...
+    plugins: [ApolloServerPluginSubscriptionCallback()],
+  });
+  ```
+
+  Note that there is currently no tracing or metrics mechanism in place for callback subscriptions. Additionally, this plugin "intercepts" callback subscription requests and bypasses some of Apollo Server's internals. The result of this is that certain plugin hooks (notably `executionDidStart` and `willResolveField`) will not be called when handling callback subscription requests or when sending subscription events.
+
+  For more information on the subscription callback protocol, visit the docs:
+  https://www.apollographql.com/docs/router/executing-operations/subscription-callback-protocol/
+
+### Patch Changes
+
+- [#7659](https://github.com/apollographql/apollo-server/pull/7659) [`4784f46fb`](https://github.com/apollographql/apollo-server/commit/4784f46fb580cdcd4359a86180def7d221856480) Thanks [@renovate](https://github.com/apps/renovate)! - Update graphql-http dependency
+
+## 4.8.1
+
+### Patch Changes
+
+- [#7636](https://github.com/apollographql/apollo-server/pull/7636) [`42fc65cb2`](https://github.com/apollographql/apollo-server/commit/42fc65cb282a8d5b8bf853775a8eedc421d33524) Thanks [@trevor-scheer](https://github.com/trevor-scheer)! - Update test suite for compatibility with Node v20
+
+## 4.8.0
+
+### Minor Changes
+
+- [#7634](https://github.com/apollographql/apollo-server/pull/7634) [`f8a8ea08f`](https://github.com/apollographql/apollo-server/commit/f8a8ea08fed4090115b1a025e57bdb0f2deb82fc) Thanks [@dfperry5](https://github.com/dfperry5)! - Updating the ApolloServer constructor to take in a stringifyResult function that will allow a consumer to pass in a function that formats the result of an http query.
+
+  Usage:
+
+  ```ts
+  const server = new ApolloServer({
+    typeDefs,
+    resolvers,
+    stringifyResult: (value: FormattedExecutionResult) => {
+      return JSON.stringify(value, null, 2);
+    },
+  });
+  ```
+
+## 4.7.5
+
+### Patch Changes
+
+- [#7614](https://github.com/apollographql/apollo-server/pull/7614) [`4fadf3ddc`](https://github.com/apollographql/apollo-server/commit/4fadf3ddc9611e050dd0f08d51252ed9b0c0d9e1) Thanks [@Cellule](https://github.com/Cellule)! - Publish TypeScript typings for CommonJS modules output.
+
+  This allows TypeScript projects that use CommonJS modules with
+  `moduleResolution: "node16"` or
+  `moduleResolution: "nodeNext"`
+  to correctly resolves the typings of apollo's packages as CommonJS instead of ESM.
+
+- Updated dependencies [[`4fadf3ddc`](https://github.com/apollographql/apollo-server/commit/4fadf3ddc9611e050dd0f08d51252ed9b0c0d9e1)]:
+  - @apollo/cache-control-types@1.0.3
+  - @apollo/server-gateway-interface@1.1.1
+  - @apollo/usage-reporting-protobuf@4.1.1
+
+## 4.7.4
+
+### Patch Changes
+
+- [`0adaf80d1`](https://github.com/apollographql/apollo-server/commit/0adaf80d1ee51d8c7e5fd863c04478536d15eb8c) Thanks [@trevor-scheer](https://github.com/trevor-scheer)! - Address Content Security Policy issues
+
+  The previous implementation of CSP nonces within the landing pages did not take full advantage of the security benefit of using them. Nonces should only be used once per request, whereas Apollo Server was generating one nonce and reusing it for the lifetime of the instance. The reuse of nonces degrades the security benefit of using them but does not pose a security risk on its own. The CSP provides a defense-in-depth measure against a _potential_ XSS, so in the absence of a _known_ XSS vulnerability there is likely no risk to the user.
+
+  The mentioned fix also coincidentally addresses an issue with using crypto functions on startup within Cloudflare Workers. Crypto functions are now called during requests only, which resolves the error that Cloudflare Workers were facing. A recent change introduced a `precomputedNonce` configuration option to mitigate this issue, but it was an incorrect approach given the nature of CSP nonces. This configuration option is now deprecated and should not be used for any reason since it suffers from the previously mentioned issue of reusing nonces.
+
+  Additionally, this change adds other applicable CSPs for the scripts, styles, images, manifest, and iframes that the landing pages load.
+
+  A final consequence of this change is an extension of the `renderLandingPage` plugin hook. This hook can now return an object with an `html` property which returns a `Promise<string>` in addition to a `string` (which was the only option before).
+
 ## 4.7.3
 
 ### Patch Changes

@@ -31,7 +31,8 @@
     },
     "Web Frameworks": {
       "Integrations": "/integrations/integration-index",
-      "Building integrations": "/integrations/building-integrations"
+      "Building integrations": "/integrations/building-integrations",
+      "MERN stack tutorial": "/integrations/mern"
     },
     "Development Workflow": {
       "Build and run queries": "/workflow/build-run-queries",
@@ -73,7 +74,8 @@
         "Inline trace": "/api/plugin/inline-trace",
         "Drain HTTP server": "/api/plugin/drain-http-server",
         "Cache control": "/api/plugin/cache-control",
-        "Landing pages": "/api/plugin/landing-pages"
+        "Landing pages": "/api/plugin/landing-pages",
+        "Federated subscriptions": "/api/plugin/subscription-callback"
       },
       "Custom": {
         "Creating plugins": "/integrations/plugins",

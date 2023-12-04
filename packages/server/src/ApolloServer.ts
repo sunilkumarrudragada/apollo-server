@@ -15,6 +15,7 @@ import {
   type TypedQueryDocumentNode,
   type ValidationContext,
   type ValidationRule,
+  type FormattedExecutionResult,
 } from 'graphql';
 import {
   type KeyValueCache,
@@ -154,7 +155,7 @@ type ServerState =
 export interface ApolloServerInternals<TContext extends BaseContext> {
   state: ServerState;
   gatewayExecutor: GatewayExecutor | null;
-
+  dangerouslyDisableValidation?: boolean;
   formatError?: (
     formattedError: GraphQLFormattedError,
     error: unknown,
@@ -179,6 +180,7 @@ export interface ApolloServerInternals<TContext extends BaseContext> {
   // flip default behavior.
   status400ForVariableCoercionErrors?: boolean;
   __testing_incrementalExecutionResults?: GraphQLExperimentalIncrementalExecutionResults;
+  stringifyResult: (value: FormattedExecutionResult) => string;
 }
 
 function defaultLogger(): Logger {
@@ -219,7 +221,7 @@ export class ApolloServer<in out TContext extends BaseContext = BaseContext> {
 
     this.logger = config.logger ?? defaultLogger();
 
-    const apolloConfig = determineApolloConfig(config.apollo);
+    const apolloConfig = determineApolloConfig(config.apollo, this.logger);
 
     const isDev = nodeEnv !== 'production';
 
@@ -294,6 +296,8 @@ export class ApolloServer<in out TContext extends BaseContext = BaseContext> {
         ...(config.validationRules ?? []),
         ...(introspectionEnabled ? [] : [NoIntrospection]),
       ],
+      dangerouslyDisableValidation:
+        config.dangerouslyDisableValidation ?? false,
       fieldResolver: config.fieldResolver,
       includeStacktraceInErrorResponses:
         config.includeStacktraceInErrorResponses ??
@@ -325,13 +329,14 @@ export class ApolloServer<in out TContext extends BaseContext = BaseContext> {
         config.csrfPrevention === true || config.csrfPrevention === undefined
           ? recommendedCsrfPreventionRequestHeaders
           : config.csrfPrevention === false
-          ? null
-          : config.csrfPrevention.requestHeaders ??
-            recommendedCsrfPreventionRequestHeaders,
+            ? null
+            : config.csrfPrevention.requestHeaders ??
+              recommendedCsrfPreventionRequestHeaders,
       status400ForVariableCoercionErrors:
         config.status400ForVariableCoercionErrors ?? false,
       __testing_incrementalExecutionResults:
         config.__testing_incrementalExecutionResults,
+      stringifyResult: config.stringifyResult ?? prettyJSONStringify,
     };
   }
 
@@ -477,8 +482,9 @@ export class ApolloServer<in out TContext extends BaseContext = BaseContext> {
       if (taggedServerListenersWithRenderLandingPage.length > 1) {
         throw Error('Only one plugin can implement renderLandingPage.');
       } else if (taggedServerListenersWithRenderLandingPage.length) {
-        landingPage = await taggedServerListenersWithRenderLandingPage[0]
-          .serverListener.renderLandingPage!();
+        landingPage =
+          await taggedServerListenersWithRenderLandingPage[0].serverListener
+            .renderLandingPage!();
       }
 
       const toDisposeLast = this.maybeRegisterTerminationSignalHandlers(
@@ -499,8 +505,8 @@ export class ApolloServer<in out TContext extends BaseContext = BaseContext> {
 
       try {
         await Promise.all(
-          this.internals.plugins.map(async (plugin) =>
-            plugin.startupDidFail?.({ error }),
+          this.internals.plugins.map(
+            async (plugin) => plugin.startupDidFail?.({ error }),
           ),
         );
       } catch (pluginError) {
@@ -1016,11 +1022,24 @@ export class ApolloServer<in out TContext extends BaseContext = BaseContext> {
         runningServerState.landingPage &&
         this.prefersHTML(httpGraphQLRequest)
       ) {
+        let renderedHtml;
+        if (typeof runningServerState.landingPage.html === 'string') {
+          renderedHtml = runningServerState.landingPage.html;
+        } else {
+          try {
+            renderedHtml = await runningServerState.landingPage.html();
+          } catch (maybeError: unknown) {
+            const error = ensureError(maybeError);
+            this.logger.error(`Landing page \`html\` function threw: ${error}`);
+            return this.errorResponse(error, httpGraphQLRequest);
+          }
+        }
+
         return {
           headers: new HeaderMap([['content-type', 'text/html']]),
           body: {
             kind: 'complete',
-            string: runningServerState.landingPage.html,
+            string: renderedHtml,
           },
         };
       }
@@ -1041,10 +1060,11 @@ export class ApolloServer<in out TContext extends BaseContext = BaseContext> {
         const error = ensureError(maybeError);
         try {
           await Promise.all(
-            this.internals.plugins.map(async (plugin) =>
-              plugin.contextCreationDidFail?.({
-                error,
-              }),
+            this.internals.plugins.map(
+              async (plugin) =>
+                plugin.contextCreationDidFail?.({
+                  error,
+                }),
             ),
           );
         } catch (pluginError) {
@@ -1077,8 +1097,9 @@ export class ApolloServer<in out TContext extends BaseContext = BaseContext> {
       ) {
         try {
           await Promise.all(
-            this.internals.plugins.map(async (plugin) =>
-              plugin.invalidRequestWasReceived?.({ error: maybeError }),
+            this.internals.plugins.map(
+              async (plugin) =>
+                plugin.invalidRequestWasReceived?.({ error: maybeError }),
             ),
           );
         } catch (pluginError) {
@@ -1309,11 +1330,12 @@ export async function internalExecuteOperation<TContext extends BaseContext>(
     // If *these* hooks throw then we'll still get a 500 but won't mask its
     // error.
     await Promise.all(
-      internals.plugins.map(async (plugin) =>
-        plugin.unexpectedErrorProcessingRequest?.({
-          requestContext,
-          error,
-        }),
+      internals.plugins.map(
+        async (plugin) =>
+          plugin.unexpectedErrorProcessingRequest?.({
+            requestContext,
+            error,
+          }),
       ),
     );
     // Mask unexpected error externally.

@@ -141,6 +141,74 @@ describe('ApolloServer construction', () => {
     // @ts-expect-error
     takesConfig({ modules: [] });
   });
+  describe('with configuration options', () => {
+    it('stringifyResult', async () => {
+      const server = new ApolloServer({
+        typeDefs,
+        resolvers,
+        stringifyResult: (value: FormattedExecutionResult) => {
+          let result = JSON.stringify(value, null, 10000);
+          result = result.replace('world', 'stringifyResults works!'); // replace text with something custom
+          return result;
+        },
+      });
+
+      await server.start();
+
+      const request = {
+        httpGraphQLRequest: {
+          method: 'POST',
+          headers: new HeaderMap([['content-type', 'application-json']]),
+          body: { query: '{ hello }' },
+          search: '',
+        },
+        context: async () => ({}),
+      };
+
+      const { body } = await server.executeHTTPGraphQLRequest(request);
+      assert(body.kind === 'complete');
+      expect(body.string).toMatchInlineSnapshot(`
+      "{
+                "data": {
+                          "hello": "stringifyResults works!"
+                }
+      }"
+      `);
+      await server.stop();
+    });
+  });
+
+  it('throws when an API key is not a valid header value', () => {
+    expect(() => {
+      new ApolloServer({
+        typeDefs,
+        resolvers,
+        apollo: {
+          key: 'bar▒baz▒',
+        },
+      });
+    }).toThrowErrorMatchingInlineSnapshot(
+      `"The API key provided to Apollo Server contains characters which are invalid as HTTP header values. The following characters found in the key are invalid: ▒, ▒. Valid header values may only contain ASCII visible characters. If you think there is an issue with your key, please contact Apollo support."`,
+    );
+  });
+
+  it('trims whitespace from incoming API keys and logs a warning', () => {
+    const logger = mockLogger();
+    expect(() => {
+      new ApolloServer({
+        typeDefs,
+        resolvers,
+        apollo: {
+          key: 'barbaz\n',
+        },
+        logger,
+      });
+    }).not.toThrow();
+    expect(logger.warn).toHaveBeenCalledWith(
+      'The provided API key has unexpected leading or trailing whitespace. ' +
+        'Apollo Server will trim the key value before use.',
+    );
+  });
 });
 
 const failToStartPlugin: ApolloServerPlugin<BaseContext> = {

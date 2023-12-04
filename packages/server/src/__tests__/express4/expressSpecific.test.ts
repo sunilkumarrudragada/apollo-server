@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { json } from 'express';
 import request from 'supertest';
 import compression, { filter as defaultFilter } from 'compression';
 import { ApolloServer, BaseContext } from '../../index.js';
@@ -6,9 +6,8 @@ import { expressMiddleware } from '../../express4/index.js';
 import { it, expect } from '@jest/globals';
 import resolvable from '@josephg/resolvable';
 import cors from 'cors';
-import { json } from 'body-parser';
 
-it('gives helpful error if body-parser middleware is not installed', async () => {
+it('gives helpful error if json middleware is not installed', async () => {
   const server = new ApolloServer({ typeDefs: 'type Query {f: ID}' });
   await server.start();
   const app = express();
@@ -18,7 +17,7 @@ it('gives helpful error if body-parser middleware is not installed', async () =>
   await request(app)
     .post('/')
     .send({ query: '{hello}' })
-    .expect(500, /forgot to set up the `body-parser`/);
+    .expect(500, /forgot to set up the `json` middleware/);
   await server.stop();
 });
 
@@ -193,7 +192,7 @@ it('supporting doubly-encoded variables example from migration guide', async () 
       query: 'query Hello($s: String!){hello(s: $s)}',
       variables: '{malformed JSON}',
     })
-    .expect(400, 'Unexpected token m in JSON at position 1');
+    .expect(400, /in JSON at position 1/);
 
   await server.stop();
 });

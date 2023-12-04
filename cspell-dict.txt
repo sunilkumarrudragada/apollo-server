@@ -16,6 +16,7 @@ automerges
 autopolling
 backoff
 backported
+barbaz
 beyoncé
 blahblah
 Blocklist
@@ -29,6 +30,7 @@ Carettoni
 Changesets
 cimg
 circleci
+cleartext
 codecov
 codegen
 codepaths
@@ -89,6 +91,7 @@ Hofmann
 hrtime
 htmls
 httpcache
+iframes
 IHTTP
 importability
 instanceof
@@ -109,6 +112,7 @@ loglevel
 Luca
 MAXAGE
 memjs
+MERN
 mget
 Mget
 microrouter
@@ -187,6 +191,7 @@ tsconfig
 tsconfigs
 typecheck
 typeis
+typenames
 typeof
 typesafe
 unawaited

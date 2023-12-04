@@ -38,11 +38,12 @@ type InitialStateForEmbeds =
 
 export type ApolloServerPluginLandingPageDefaultBaseOptions = {
   /**
-   * By default, the landing page plugin uses the latest version of the landing
-   * page published to Apollo's CDN. If you'd like to pin the current version,
-   * pass the SHA served at
-   * https://apollo-server-landing-page.cdn.apollographql.com/_latest/version.txt
-   * here.
+   * Specify the major version of the landing page to use, i.e v2 or
+   * provide a specific commit from the
+   * [embeddable explorer](https://github.com/apollographql/embeddable-explorer)
+   * repo.
+   * We also support a `latest` tag but don't recommend using it
+   * as it's subject to major version updates.
    */
   version?: string;
   /**
@@ -54,9 +55,13 @@ export type ApolloServerPluginLandingPageDefaultBaseOptions = {
   includeCookies?: boolean;
 
   /**
-   * If specified, the landing page will use the provided nonce rather than
-   * compute its own. This is useful for Cloudflare Workers, which do not allow
-   * number generation on startup.
+   * @deprecated This was originally introduced to support Cloudflare Workers
+   * based on a misunderstanding of CSP nonces. A different, more complete
+   * solution has since been implemented which removes the need for this option
+   * altogether. Specifying this option degrades the security of your
+   * application since it reuses the same nonce for every request, whereas
+   * Apollo Server generates a new one for every request by default.
+   * TODO(AS5): Remove this option.
    */
   precomputedNonce?: string;
 

@@ -1,5 +1,99 @@
 # @apollo/server-integration-testsuite
 
+## 4.9.5
+
+### Patch Changes
+
+- [#7717](https://github.com/apollographql/apollo-server/pull/7717) [`681bdd0dc`](https://github.com/apollographql/apollo-server/commit/681bdd0dc103cc855ae1c419b4fb0c526084ce5d) Thanks [@renovate](https://github.com/apps/renovate)! - Update graphql-http dependency
+
+- Updated dependencies [[`07585fe39`](https://github.com/apollographql/apollo-server/commit/07585fe39751a5d4009664293b6e413078a9b827), [`4fac1628c`](https://github.com/apollographql/apollo-server/commit/4fac1628c5d92bb393ef757f65908129459ab045)]:
+  - @apollo/server@4.9.5
+
+## 4.9.4
+
+### Patch Changes
+
+- Updated dependencies [[`ddce036e1`](https://github.com/apollographql/apollo-server/commit/ddce036e1b683adc636a7132e0c249690bf05ce0)]:
+  - @apollo/server@4.9.4
+
+## 4.9.3
+
+### Patch Changes
+
+- Updated dependencies [[`a1c725eaf`](https://github.com/apollographql/apollo-server/commit/a1c725eaf53c901e32a15057211bcb3eb6a6109b)]:
+  - @apollo/server@4.9.3
+
+## 4.9.2
+
+### Patch Changes
+
+- Updated dependencies [[`62e7d940d`](https://github.com/apollographql/apollo-server/commit/62e7d940de025f21e89c60404bce0dddac84ed6c)]:
+  - @apollo/server@4.9.2
+
+## 4.9.1
+
+### Patch Changes
+
+- Updated dependencies [[`ebfde0007`](https://github.com/apollographql/apollo-server/commit/ebfde0007c647d9fb73e3aa24b968def3e307084)]:
+  - @apollo/server@4.9.1
+
+## 4.9.0
+
+### Patch Changes
+
+- [#7659](https://github.com/apollographql/apollo-server/pull/7659) [`4784f46fb`](https://github.com/apollographql/apollo-server/commit/4784f46fb580cdcd4359a86180def7d221856480) Thanks [@renovate](https://github.com/apps/renovate)! - Update graphql-http dependency
+
+- Updated dependencies [[`4ff81ca50`](https://github.com/apollographql/apollo-server/commit/4ff81ca508d46eaafa4aa7c265cf2ba2c4421524), [`4784f46fb`](https://github.com/apollographql/apollo-server/commit/4784f46fb580cdcd4359a86180def7d221856480)]:
+  - @apollo/server@4.9.0
+
+## 4.8.1
+
+### Patch Changes
+
+- [#7636](https://github.com/apollographql/apollo-server/pull/7636) [`42fc65cb2`](https://github.com/apollographql/apollo-server/commit/42fc65cb282a8d5b8bf853775a8eedc421d33524) Thanks [@trevor-scheer](https://github.com/trevor-scheer)! - Update test suite for compatibility with Node v20
+
+- Updated dependencies [[`42fc65cb2`](https://github.com/apollographql/apollo-server/commit/42fc65cb282a8d5b8bf853775a8eedc421d33524)]:
+  - @apollo/server@4.8.1
+
+## 4.8.0
+
+### Patch Changes
+
+- [#7649](https://github.com/apollographql/apollo-server/pull/7649) [`d33acdfdd`](https://github.com/apollographql/apollo-server/commit/d33acdfddd525c2cb1d5d5810a98e02fb917ac9f) Thanks [@mastrzyz](https://github.com/mastrzyz)! - Add missing `supertest` dependency
+
+- [#7632](https://github.com/apollographql/apollo-server/pull/7632) [`64f8177ab`](https://github.com/apollographql/apollo-server/commit/64f8177abca46865c155ff2fc8ed0194ad8d0c83) Thanks [@renovate](https://github.com/apps/renovate)! - Update graphql-http dependency
+
+- Updated dependencies [[`f8a8ea08f`](https://github.com/apollographql/apollo-server/commit/f8a8ea08fed4090115b1a025e57bdb0f2deb82fc)]:
+  - @apollo/server@4.8.0
+
+## 4.7.5
+
+### Patch Changes
+
+- Updated dependencies [[`4fadf3ddc`](https://github.com/apollographql/apollo-server/commit/4fadf3ddc9611e050dd0f08d51252ed9b0c0d9e1)]:
+  - @apollo/cache-control-types@1.0.3
+  - @apollo/server@4.7.5
+  - @apollo/usage-reporting-protobuf@4.1.1
+
+## 4.7.4
+
+### Patch Changes
+
+- [#7604](https://github.com/apollographql/apollo-server/pull/7604) [`aeb511c7d`](https://github.com/apollographql/apollo-server/commit/aeb511c7d7b3b7260b33c7e392580bac6565e465) Thanks [@renovate](https://github.com/apps/renovate)! - Update `graphql-http` dependency
+
+- [`0adaf80d1`](https://github.com/apollographql/apollo-server/commit/0adaf80d1ee51d8c7e5fd863c04478536d15eb8c) Thanks [@trevor-scheer](https://github.com/trevor-scheer)! - Address Content Security Policy issues
+
+  The previous implementation of CSP nonces within the landing pages did not take full advantage of the security benefit of using them. Nonces should only be used once per request, whereas Apollo Server was generating one nonce and reusing it for the lifetime of the instance. The reuse of nonces degrades the security benefit of using them but does not pose a security risk on its own. The CSP provides a defense-in-depth measure against a _potential_ XSS, so in the absence of a _known_ XSS vulnerability there is likely no risk to the user.
+
+  The mentioned fix also coincidentally addresses an issue with using crypto functions on startup within Cloudflare Workers. Crypto functions are now called during requests only, which resolves the error that Cloudflare Workers were facing. A recent change introduced a `precomputedNonce` configuration option to mitigate this issue, but it was an incorrect approach given the nature of CSP nonces. This configuration option is now deprecated and should not be used for any reason since it suffers from the previously mentioned issue of reusing nonces.
+
+  Additionally, this change adds other applicable CSPs for the scripts, styles, images, manifest, and iframes that the landing pages load.
+
+  A final consequence of this change is an extension of the `renderLandingPage` plugin hook. This hook can now return an object with an `html` property which returns a `Promise<string>` in addition to a `string` (which was the only option before).
+
+- Updated dependencies [[`0adaf80d1`](https://github.com/apollographql/apollo-server/commit/0adaf80d1ee51d8c7e5fd863c04478536d15eb8c)]:
+  - @apollo/server@4.7.4
+
 ## 4.7.3
 
 ### Patch Changes

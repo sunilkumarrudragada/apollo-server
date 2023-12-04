@@ -1,7 +1,6 @@
 import http from 'http';
 import { createHash } from '@apollo/utils.createhash';
 import express from 'express';
-import bodyParser from 'body-parser';
 import loglevel from 'loglevel';
 
 import { Report, Trace } from '@apollo/usage-reporting-protobuf';
@@ -311,6 +310,21 @@ export function defineIntegrationTestSuiteApolloServerTests(
           expect(result.errors[0].extensions.validationErrorCode).toEqual(
             ApolloServerValidationErrorCode.INTROSPECTION_DISABLED,
           );
+        });
+
+        it('allows disabling validation rules', async () => {
+          const uri = await createServerAndGetUrl({
+            schema,
+            stopOnTerminationSignals: false,
+            nodeEnv: 'production',
+            dangerouslyDisableValidation: true,
+          });
+
+          const apolloFetch = createApolloFetch({ uri });
+
+          const result = await apolloFetch({ query: INTROSPECTION_QUERY });
+          expect(result.data).toBeDefined();
+          expect(result.errors).toBeUndefined();
         });
 
         it('allows introspection to be enabled explicitly', async () => {
@@ -874,7 +888,7 @@ export function defineIntegrationTestSuiteApolloServerTests(
               next();
             });
             this.app.use(
-              bodyParser.raw({
+              express.raw({
                 inflate: true,
                 type: '*/*',
               }),
@@ -2881,7 +2895,7 @@ export function defineIntegrationTestSuiteApolloServerTests(
       }
 
       function makeServerConfig(
-        htmls: string[],
+        htmls: (string | (() => Promise<string>))[],
       ): ApolloServerOptions<BaseContext> {
         return {
           typeDefs: 'type Query {x: ID}',
@@ -2912,7 +2926,7 @@ export function defineIntegrationTestSuiteApolloServerTests(
         url = (await createServer(makeServerConfig([]))).url;
         await get().expect(
           200,
-          /embeddable-sandbox.cdn.apollographql.com\/_latest\/embeddable-sandbox.umd.production.min.js/s,
+          /embeddable-sandbox.cdn.apollographql.com\/v2\/embeddable-sandbox.umd.production.min.js/s,
         );
       });
 
@@ -2964,6 +2978,30 @@ export function defineIntegrationTestSuiteApolloServerTests(
         });
         it('needs the header', async () => {
           await getWithoutAcceptHeader().expect(serveNoLandingPage);
+        });
+      });
+
+      describe('async `html` function', () => {
+        it('returns a string', async () => {
+          url = (await createServer(makeServerConfig([async () => 'BAZ']))).url;
+          await get().expect(200, 'BAZ');
+        });
+        it('throws', async () => {
+          const logger = mockLogger();
+          url = (
+            await createServer({
+              ...makeServerConfig([
+                async () => {
+                  throw new Error('Landing page failed to render!');
+                },
+              ]),
+              logger,
+            })
+          ).url;
+          await get().expect(500);
+          expect(logger.error).toHaveBeenCalledWith(
+            'Landing page `html` function threw: Error: Landing page failed to render!',
+          );
         });
       });
 

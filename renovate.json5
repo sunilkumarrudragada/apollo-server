@@ -1,9 +1,7 @@
 {
   "extends": [
     "apollo-open-source",
-    "group:graphqlcodegeneratorMonorepo",
-    "group:graphql-toolsMonorepo",
-    "group:jestMonorepo",
+    "group:monorepos",
     "group:jestPlusTSJest",
     "group:jestPlusTypes",
   ],
@@ -32,6 +30,12 @@
       "matchUpdateTypes": ["patch", "minor"],
       "groupSlug": "all-minor-patch",
     },
+    // TypeScript minor versions don't follow semver, and typically require a few changes on our end to take the upgrade. Break them out from the all-minor-patch group so they don't block other upgrades.
+    {
+      "groupName": "typescript",
+      "matchPackageNames": ["typescript"],
+      "matchUpdateTypes": ["minor"],
+    },
     // The testsuite depends directly on the tests in `graphql-http`.
     // Because of this, updates to `graphql-http` affect the contents of
     // published packages, require a changeset, and cannot be auto-merged.
@@ -56,15 +60,40 @@
       matchPackageNames: ["@types/node"],
       allowedVersions: "14.x"
     },
-    // lru-cache@8 drops support for node v16. We can take this when we drop node v14 support.
+    // lru-cache@8 drops support for node v14. We can take this when we drop node v14 support.
     {
       matchPackageNames: ["lru-cache"],
       allowedVersions: "7.x"
     },
-    // @apollo/utils@3 drop support for node v16. We can take this when we drop node v14 support.
+    // @apollo/utils@3 drop support for node v14. We can take this when we drop node v14 support.
     {
       matchPackagePatterns: ["^@apollo/utils"],
       allowedVersions: "2.x"
+    },
+    // @graphql-codegen@4 drops support for node v14. We can take this when we drop node v14 support.
+    {
+      matchPackagePatterns: ["^@graphql-codegen"],
+      allowedVersions: "3.x"
+    },
+    // @graphql-tools/mock@8 drops support for node v14. We can take this when we drop node v14 support.
+    {
+      matchPackageNames: ["^@graphql-tools/mock"],
+      allowedVersions: "8.x"
+    },
+    // @graphql-tools/schema@9 drops support for node v14. We can take this when we drop node v14 support.
+    {
+      matchPackageNames: ["^@graphql-tools/schema"],
+      allowedVersions: "9.x"
+    },
+    // make-fetch-happen@12 drops support for node v14. We can take this when we drop node v14 support.
+    {
+      matchPackageNames: ["^make-fetch-happen"],
+      allowedVersions: "11.x"
+    },
+    // @typescript-eslint@6 drops support for node v14. We can take this when we drop node v14 support.
+    {
+      matchPackageNames: ["^@typescript-eslint"],
+      allowedVersions: "5.x"
     },
     // node-fetch v3 only ships as ESM. We currently build as both CommonJS and
     // ESM and we're not going to go ESM-only for a while. So let's stay on v2.
@@ -79,6 +108,11 @@
       matchSourceUrlPrefixes: ["https://github.com/rollup/"],
       matchUpdateTypes: ["major"],
       groupName: "rollup",
+    },
+    // Only needed until Jest supports prettier@3 for snapshots
+    {
+      "matchPackageNames": ["prettier-2"],
+      "allowedVersions": "2.x"
     },
   ]
 }

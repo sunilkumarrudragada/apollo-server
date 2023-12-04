@@ -1,0 +1,12 @@
+{
+  "files": [
+    "smoke-test.cts",
+  ],
+  "compilerOptions": {
+    "outDir": "generated/tsc/variants/nodenext",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "esModuleInterop": true,
+    "strict": true,
+  },
+}
